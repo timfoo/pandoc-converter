@@ -8,7 +8,6 @@
   - streamlit for the web interface
   - pandoc for document conversion
   - python-magic for file type detection
-  - python-magic-bin for binary support
 
 ### Initial Application Setup
 - Created app.py with basic Streamlit UI
@@ -26,3 +25,4 @@
 1. Using python-magic for reliable file type detection instead of relying on file extensions
 2. Implementing temporary file storage with automatic cleanup to handle file uploads safely
 3. Chose Streamlit for rapid UI development and easy deployment
+4. Removed python-magic-bin dependency in favor of system libmagic for better compatibility
