@@ -66,6 +66,10 @@
 - Enhanced type hints and documentation
 - Implemented better temporary file management
 
+### User Experience Improvements
+- Modified conversion process to preserve original filenames in converted files
+- Enhanced file handling to maintain consistent naming between input and output files
+
 ### Next Steps
 - Add format-specific conversion options (templates, metadata)
 - Implement batch conversion functionality

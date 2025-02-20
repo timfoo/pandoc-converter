@@ -89,8 +89,9 @@ if uploaded_file is not None:
         
         if st.button("Convert"):
             try:
-                # Prepare output path
-                output_path = temp_path.parent / f"converted.{selected_format}"
+                # Prepare output path with original filename
+                original_name = Path(uploaded_file.name).stem
+                output_path = temp_path.parent / f"{original_name}.{selected_format}"
                 
                 # Run pandoc conversion
                 input_format = PANDOC_FORMATS[file_type]['pandoc_format']
@@ -107,7 +108,7 @@ if uploaded_file is not None:
                     st.download_button(
                         label="Download converted file",
                         data=converted_data,
-                        file_name=f"converted.{selected_format}",
+                        file_name=f"{original_name}.{selected_format}",
                         mime=f"application/{selected_format}"
                     )
 
