@@ -42,6 +42,16 @@ Speaker notes go here
 
 :::
 
+## Google Image link
+
+![Alt text looks like this](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWH4-KlGE1Sq2iA-ZdM_vzUEeogCbWltZLkA&s){width=25%}
+
+::: notes
+
+Speaker notes go here
+
+:::
+
 ## Table
 
 | Heading | Heading | Heading | Heading | Heading |

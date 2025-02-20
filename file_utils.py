@@ -26,9 +26,10 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
         try:
             # Parse URL and create local filename
             parsed_url = urlparse(url)
-            filename = os.path.basename(parsed_url.path)
-            if not filename:
-                filename = 'image.jpg'  # Default filename if none in URL
+            path = parsed_url.path.split('?')[0]  # Remove query parameters
+            filename = os.path.basename(path)
+            if not filename or '=' in filename:  # Additional check for query params
+                filename = f'image_{hash(url)[:8]}.jpg'  # Generate unique filename
             
             # Download image
             response = requests.get(url, timeout=10)
