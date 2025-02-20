@@ -8,62 +8,58 @@ from typing import List
 from urllib.parse import urlparse
 
 def is_valid_remote_url(url: str) -> bool:
-    """Thoroughly validate if a string is a valid remote URL.
-
-    Args:
-        url: The URL string to validate.
-
-    Returns:
-        bool: True if the URL is valid and remote, False otherwise.
-    """
+    print(f"\nValidating URL: {url}")
     try:
         result = urlparse(url)
         # Check for valid scheme
         if not result.scheme:
+            print(f"Invalid URL: Missing scheme")
             return False
         
         # Validate scheme is a remote protocol
         valid_schemes = ('http', 'https', 'ftp', 'sftp')
         if result.scheme not in valid_schemes:
+            print(f"Invalid URL: Scheme {result.scheme} not in {valid_schemes}")
             return False
             
         # Must have a network location (domain)
         if not result.netloc:
+            print(f"Invalid URL: Missing network location")
             return False
             
         # Basic domain validation
         domain = result.netloc.split(':')[0]  # Remove port if present
         if not domain or domain.startswith('.'):
+            print(f"Invalid URL: Invalid domain format {domain}")
             return False
             
         # Check for common local addresses
         local_addresses = ('localhost', '127.0.0.1', '0.0.0.0')
         if domain.lower() in local_addresses:
+            print(f"Invalid URL: Local address detected {domain}")
             return False
             
+        print(f"Valid remote URL detected: {url}")
         return True
-    except (ValueError, AttributeError):
+    except (ValueError, AttributeError) as e:
+        print(f"URL validation error: {str(e)}")
         return False
 
 def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
-    """Process image URLs in markdown content by downloading them to temp directory.
-
-    Args:
-        markdown_content: The content of the markdown file.
-        temp_dir: Path to the temporary directory.
-
-    Returns:
-        Updated markdown content with local references to downloaded images.
-    """
+    print(f"\nProcessing markdown content for image URLs")
+    print(f"Temporary directory: {temp_dir}")
     # Match all image references: ![alt](path)
     image_pattern = r'!\[([^\]]*)\]\(([^\)]+)\)(?:{[^}]*})?'
     
     def process_image_reference(match):
         alt_text = match.group(1)
         path = match.group(2).strip()
+        print(f"\nProcessing image reference - Alt text: {alt_text}")
+        print(f"Image path: {path}")
         
         # If not a valid remote URL, return original reference unchanged
         if not is_valid_remote_url(path):
+            print("Not a valid remote URL, keeping original reference")
             return match.group(0)
             
         try:
@@ -71,30 +67,35 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
             parsed_url = urlparse(path)
             url_path = parsed_url.path.split('?')[0]  # Remove query parameters
             filename = os.path.basename(url_path)
+            print(f"Parsed URL path: {url_path}")
             
             # Generate unique filename if original is empty or contains query parameters
             if not filename or '=' in filename:
                 filename = f'image_{abs(hash(path))}.jpg'
+                print(f"Generated unique filename: {filename}")
             
             # Download image with proper timeout and headers
+            print(f"Attempting to download image from: {path}")
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(path, timeout=10, headers=headers, allow_redirects=True)
             response.raise_for_status()
             
             # Verify content type is an image
             content_type = response.headers.get('content-type', '')
+            print(f"Content type received: {content_type}")
             if not content_type.startswith('image/'):
                 raise ValueError(f'Invalid content type: {content_type}')
             
             # Save to temp directory
             image_path = temp_dir / filename
+            print(f"Saving image to: {image_path}")
             with open(image_path, 'wb') as f:
                 f.write(response.content)
             
-            # Return markdown with local reference
+            print(f"Successfully processed remote image: {path}")
             return f'![{alt_text}]({filename})'
         except Exception as e:
-            print(f'Failed to process image {path}: {str(e)}')
+            print(f"Error processing image {path}: {str(e)}")
             return match.group(0)  # Return original markdown on error
     
     # Process all image references
