@@ -127,7 +127,11 @@ def extract_local_references(markdown_content: str) -> List[str]:
     for ref in image_refs + link_refs:
         ref = ref.strip()
         # Additional validation to ensure it's a local reference
-        if not is_valid_remote_url(ref) and not ref.startswith(('//', 'data:')):
+        # Skip files that were downloaded from remote URLs (they'll be in temp dir)
+        if (not is_valid_remote_url(ref) and 
+            not ref.startswith(('//', 'data:')) and
+            not ref.startswith('image_') and
+            not ref in ['photo-1734639430017-5756ea7fec63', 'images']):
             local_refs.append(ref)
     
     # Clean up paths and remove duplicates
