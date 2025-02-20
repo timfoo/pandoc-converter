@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import re
 import requests
+from typing import List
 from urllib.parse import urlparse
 
 def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
