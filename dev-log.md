@@ -87,3 +87,37 @@
 - Added prominent feature highlights section in the interface
 - Improved visual feedback for file type detection and processing
 - Enhanced user guidance for handling remote and local resources
+
+## 2024-02-22
+### Debugging Activity: Remote Image Handling
+
+#### Initial Implementation Challenges
+- First attempt: Basic regex pattern for image URLs failed to handle various URL formats
+- Second attempt: Enhanced regex pattern to better match image references, but still missed edge cases
+- Third attempt: Added URL validation but encountered issues with local file detection
+
+#### Debugging Process
+1. URL Detection and Validation (3 iterations)
+   - Initially used simple URL pattern matching
+   - Added comprehensive URL validation with proper scheme and domain checking
+   - Implemented safeguards against local network addresses
+
+2. Local vs Remote Reference Handling (2 iterations)
+   - Fixed conflict between local and remote image processing
+   - Improved logic to prevent false positives in local file detection
+
+3. File Processing Improvements (2 iterations)
+   - Enhanced temporary file management for downloaded images
+   - Implemented proper cleanup of temporary resources
+
+#### Final Solution
+- Implemented robust URL validation with proper scheme and domain checking
+- Added comprehensive error handling for network requests
+- Created clear separation between local and remote resource processing
+- Established proper temporary file management for downloaded resources
+
+#### Lessons Learned
+- Importance of thorough URL validation beyond basic pattern matching
+- Need for clear separation between local and remote resource handling
+- Value of comprehensive error handling for network operations
+- Significance of proper temporary resource management

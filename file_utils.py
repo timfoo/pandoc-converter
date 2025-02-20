@@ -38,21 +38,15 @@ def is_valid_remote_url(url: str) -> bool:
         return False
 
 def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
-    import streamlit as st
-    st.write("Processing markdown content for image URLs")
-    st.write(f"Temporary directory: {temp_dir}")
     # Match all image references: ![alt](path)
     image_pattern = r'!\[([^\]]*)\]\(([^\)]+)\)(?:{[^}]*})?'
     
     def process_image_reference(match):
         alt_text = match.group(1)
         path = match.group(2).strip()
-        st.write(f"Processing image reference - Alt text: {alt_text}")
-        st.write(f"Image path: {path}")
         
         # If not a valid remote URL, return original reference unchanged
         if not is_valid_remote_url(path):
-            st.info("Not a valid remote URL, keeping original reference")
             return match.group(0)
             
         try:
@@ -60,35 +54,28 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
             parsed_url = urlparse(path)
             url_path = parsed_url.path.split('?')[0]  # Remove query parameters
             filename = os.path.basename(url_path)
-            st.write(f"Parsed URL path: {url_path}")
             
             # Generate unique filename if original is empty or contains query parameters
             if not filename or '=' in filename:
                 filename = f'image_{abs(hash(path))}.jpg'
-                st.write(f"Generated unique filename: {filename}")
             
             # Download image with proper timeout and headers
-            st.info(f"Attempting to download image from: {path}")
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(path, timeout=10, headers=headers, allow_redirects=True)
             response.raise_for_status()
             
             # Verify content type is an image
             content_type = response.headers.get('content-type', '')
-            st.write(f"Content type received: {content_type}")
             if not content_type.startswith('image/'):
                 raise ValueError(f'Invalid content type: {content_type}')
             
             # Save to temp directory
             image_path = temp_dir / filename
-            st.write(f"Saving image to: {image_path}")
             with open(image_path, 'wb') as f:
                 f.write(response.content)
             
-            st.success(f"Successfully processed remote image: {path}")
             return f'![{alt_text}]({filename})'
         except Exception as e:
-            st.error(f"Error processing image {path}: {str(e)}")
             return match.group(0)  # Return original markdown on error
     
     # Process all image references
