@@ -1,2 +1,7 @@
 pandoc
 libmagic1
+texlive-latex-base
+texlive-fonts-recommended
+texlive-extra-utils
+texlive-latex-extra
+texlive-xetex

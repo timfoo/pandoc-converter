@@ -170,3 +170,40 @@ if uploaded_file is not None:
     os.remove(temp_path)
     if temp_path.parent.exists() and not any(temp_path.parent.iterdir()):
         temp_path.parent.rmdir()
+# Add conversion support table at the bottom
+with st.expander("View Supported Conversions"):
+    st.markdown("### Supported Format Conversions")
+    
+    # Create categories for better organization
+    categories = {
+        'Markup Formats': ['text/markdown', 'text/plain', 'text/x-rst', 'text/org'],
+        'Document Formats': ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/vnd.oasis.opendocument.text', 'text/rtf'],
+        'Web Formats': ['text/html'],
+        'eBook Formats': ['application/epub+zip'],
+        'Notebook Formats': ['application/x-ipynb+json'],
+        'Wiki Formats': ['text/x-wiki'],
+        'LaTeX': ['text/x-tex']
+    }
+    
+    # Create table for each category
+    for category, mime_types in categories.items():
+        st.markdown(f"#### {category}")
+        
+        # Create table headers
+        table_header = "| Input Format | Supported Output Formats |"
+        table_separator = "|-------------|----------------------|"
+        table_rows = []
+        
+        # Add rows for each format in category
+        for mime_type in mime_types:
+            if mime_type in PANDOC_FORMATS:
+                format_info = PANDOC_FORMATS[mime_type]
+                input_format = format_info['ext'].lstrip('.')
+                output_formats = ', '.join(format_info['output_formats'])
+                table_rows.append(f"| {input_format} | {output_formats} |")
+        
+        # Display table if there are rows
+        if table_rows:
+            table_content = '\n'.join([table_header, table_separator] + table_rows)
+            st.markdown(table_content)
+            st.markdown("")
