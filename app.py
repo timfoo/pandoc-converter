@@ -80,20 +80,24 @@ if uploaded_file is not None:
         local_refs = extract_local_references(content)
 
         if local_refs:
-            st.warning("This document contains references to local files:")
-            st.write(", ".join(local_refs))
+            st.warning(f"This document contains references to local files: {', '.join(local_refs)}")
             
-            # Create a file uploader for each referenced file
-            uploaded_refs = {}
-            for ref in local_refs:
-                ref_file = st.file_uploader(f"Upload referenced file: {ref}", key=ref)
-                if ref_file:
-                    # Save referenced file to temp directory with original path structure
-                    ref_path = temp_path.parent / Path(ref)
-                    ref_path.parent.mkdir(parents=True, exist_ok=True)
-                    with open(ref_path, "wb") as f:
-                        f.write(ref_file.getbuffer())
-                    uploaded_refs[ref] = True
+            # Create a container for file uploaders
+            with st.container():
+                st.subheader("Upload Referenced Files")
+                st.info("Please upload all referenced files to proceed with the conversion.")
+                
+                # Create a file uploader for each referenced file
+                uploaded_refs = {}
+                for ref in local_refs:
+                    ref_file = st.file_uploader(f"Upload referenced file: {ref}", key=ref)
+                    if ref_file:
+                        # Save referenced file to temp directory with original path structure
+                        ref_path = temp_path.parent / Path(ref)
+                        ref_path.parent.mkdir(parents=True, exist_ok=True)
+                        with open(ref_path, "wb") as f:
+                            f.write(ref_file.getbuffer())
+                        uploaded_refs[ref] = True
             
             # Only enable conversion if all referenced files are uploaded
             if len(uploaded_refs) < len(local_refs):
