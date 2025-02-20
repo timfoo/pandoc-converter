@@ -17,22 +17,37 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
     Returns:
         Updated markdown content with local references to downloaded images.
     """
-    # Match image references with URLs: ![alt](http(s)://path) including query parameters and attributes
-    image_url_pattern = r'!\[([^\]]*)\]\((https?://[^\s)"]+(?:\?[^\s)"]+)?)\)(?:{[^}]*})?'
+    # Match all image references: ![alt](path)
+    image_pattern = r'!\[([^\]]*)\]\(([^\)]+)\)(?:{[^}]*})?'
     
-    def download_and_replace(match):
+    def is_url(path):
+        """Check if the path is a URL."""
+        try:
+            result = urlparse(path)
+            return all([result.scheme, result.netloc])
+        except ValueError:
+            return False
+    
+    def process_image_reference(match):
         alt_text = match.group(1)
-        url = match.group(2)
+        path = match.group(2).strip()
+        
+        # If not a URL, return original reference unchanged
+        if not is_url(path):
+            return match.group(0)
+            
         try:
             # Parse URL and create local filename
-            parsed_url = urlparse(url)
-            path = parsed_url.path.split('?')[0]  # Remove query parameters
-            filename = os.path.basename(path)
-            if not filename or '=' in filename:  # Additional check for query params
-                filename = f'image_{hash(url)[:8]}.jpg'  # Generate unique filename
+            parsed_url = urlparse(path)
+            url_path = parsed_url.path.split('?')[0]  # Remove query parameters
+            filename = os.path.basename(url_path)
+            
+            # Generate unique filename if original is empty or contains query parameters
+            if not filename or '=' in filename:
+                filename = f'image_{abs(hash(path))}.jpg'
             
             # Download image
-            response = requests.get(url, timeout=10)
+            response = requests.get(path, timeout=10)
             response.raise_for_status()
             
             # Save to temp directory
@@ -43,11 +58,11 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
             # Return markdown with local reference
             return f'![{alt_text}]({filename})'
         except Exception as e:
-            print(f"Failed to download image {url}: {str(e)}")
+            print(f"Failed to process image {path}: {str(e)}")
             return match.group(0)  # Return original markdown on error
     
-    # Replace all image URLs with local references
-    return re.sub(image_url_pattern, download_and_replace, markdown_content)
+    # Process all image references
+    return re.sub(image_pattern, process_image_reference, markdown_content)
 
 def extract_local_references(markdown_content: str) -> List[str]:
     """Extract local file references from markdown content.
