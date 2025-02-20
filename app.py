@@ -44,8 +44,21 @@ PANDOC_FORMATS = {
     'text/x-tex': {'ext': '.tex', 'pandoc_format': 'latex', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'pptx', 'epub']}
 }
 
+def check_pandoc_installed():
+    """Check if pandoc is installed and accessible."""
+    try:
+        subprocess.run(['pandoc', '--version'], capture_output=True, check=True)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
 # File uploader
 uploaded_file = st.file_uploader("Choose a file", type=None)
+
+# Check if pandoc is installed
+if not check_pandoc_installed():
+    st.error("Pandoc is not installed. Please install Pandoc to use this converter. Visit https://pandoc.org/installing.html for installation instructions.")
+    st.stop()
 
 if uploaded_file is not None:
     # Save uploaded file temporarily
