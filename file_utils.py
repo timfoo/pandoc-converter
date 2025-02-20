@@ -69,12 +69,12 @@ def extract_local_references(markdown_content: str) -> List[str]:
     link_refs = re.findall(link_pattern, markdown_content)
     
     # Combine and filter out any web URLs that might have slipped through
-    local_refs.extend(image_refs)
-    local_refs.extend(link_refs)
+    local_refs.extend([ref for ref in image_refs if not ref.startswith(('http://', 'https://', 'www.', '//'))])
+    local_refs.extend([ref for ref in link_refs if not ref.startswith(('http://', 'https://', 'www.', '//'))])
     
     # Clean up paths and remove duplicates
     local_refs = list(set(ref.strip() for ref in local_refs))
-    return [ref for ref in local_refs if ref and not ref.startswith(('http://', 'https://', 'www.'))]
+    return local_refs
 
 def setup_temp_directory(temp_dir: Path) -> None:
     """Set up a temporary directory for file processing.
