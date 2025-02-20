@@ -8,42 +8,33 @@ from typing import List
 from urllib.parse import urlparse
 
 def is_valid_remote_url(url: str) -> bool:
-    import streamlit as st
-    st.write(f"Validating URL: {url}")
     try:
         result = urlparse(url)
         # Check for valid scheme
         if not result.scheme:
-            st.warning(f"Invalid URL: Missing scheme")
             return False
         
         # Validate scheme is a remote protocol
         valid_schemes = ('http', 'https', 'ftp', 'sftp')
         if result.scheme not in valid_schemes:
-            st.warning(f"Invalid URL: Scheme {result.scheme} not in {valid_schemes}")
             return False
             
         # Must have a network location (domain)
         if not result.netloc:
-            st.warning(f"Invalid URL: Missing network location")
             return False
             
         # Basic domain validation
         domain = result.netloc.split(':')[0]  # Remove port if present
         if not domain or domain.startswith('.'):
-            st.warning(f"Invalid URL: Invalid domain format {domain}")
             return False
             
         # Check for common local addresses
         local_addresses = ('localhost', '127.0.0.1', '0.0.0.0')
         if domain.lower() in local_addresses:
-            st.warning(f"Invalid URL: Local address detected {domain}")
             return False
             
-        st.success(f"Valid remote URL detected: {url}")
         return True
-    except (ValueError, AttributeError) as e:
-        st.error(f"URL validation error: {str(e)}")
+    except (ValueError, AttributeError):
         return False
 
 def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
