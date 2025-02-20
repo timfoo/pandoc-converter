@@ -94,6 +94,11 @@ if uploaded_file is not None:
     with open(temp_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     
+    # Detect file type
+    mime = magic.Magic(mime=True)
+    file_type = mime.from_file(str(temp_path))
+    st.write(f"Detected file type: {file_type}")
+    
     # If it's a markdown file, check for local references
     if file_type in ['text/markdown', 'text/plain']:
         with open(temp_path, 'r', encoding='utf-8') as f:
@@ -120,11 +125,6 @@ if uploaded_file is not None:
             if len(uploaded_refs) < len(local_refs):
                 st.error("Please upload all referenced files before converting")
                 st.stop()
-    
-    # Detect file type
-    mime = magic.Magic(mime=True)
-    file_type = mime.from_file(str(temp_path))
-    st.write(f"Detected file type: {file_type}")
     
     # Check if file type is supported
     if file_type in PANDOC_FORMATS:
