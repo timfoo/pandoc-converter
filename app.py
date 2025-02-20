@@ -52,7 +52,32 @@ def check_pandoc_installed():
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
 
-# File uploader
+# Add after imports
+import re
+from typing import List, Tuple
+
+def extract_local_references(markdown_content: str) -> List[str]:
+    """Extract local file references from markdown content."""
+    # Match image references: ![alt](path) or ![alt](path){options}
+    image_pattern = r'!\[.*?\]\(((?!https?://|www\.)[^)]+)\)(?:{[^}]*})?'
+    # Match other local file references like: [text](path)
+    link_pattern = r'(?<!!)\[.*?\]\(((?!https?://|www\.)[^)]+)\)'
+    
+    local_refs = []
+    
+    # Find all matches
+    image_refs = re.findall(image_pattern, markdown_content)
+    link_refs = re.findall(link_pattern, markdown_content)
+    
+    # Combine and filter out any web URLs that might have slipped through
+    local_refs.extend(image_refs)
+    local_refs.extend(link_refs)
+    
+    # Clean up paths and remove duplicates
+    local_refs = list(set(ref.strip() for ref in local_refs))
+    return [ref for ref in local_refs if ref and not ref.startswith(('http://', 'https://', 'www.'))]
+
+# Update the file uploader section
 uploaded_file = st.file_uploader("Choose a file", type=None)
 
 # Check if pandoc is installed
@@ -68,6 +93,33 @@ if uploaded_file is not None:
     # Write uploaded file
     with open(temp_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
+    
+    # If it's a markdown file, check for local references
+    if file_type in ['text/markdown', 'text/plain']:
+        with open(temp_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        local_refs = extract_local_references(content)
+        
+        if local_refs:
+            st.warning("This document contains references to local files:")
+            st.write(", ".join(local_refs))
+            
+            # Create a file uploader for each referenced file
+            uploaded_refs = {}
+            for ref in local_refs:
+                ref_file = st.file_uploader(f"Upload referenced file: {ref}", key=ref)
+                if ref_file:
+                    # Save referenced file to temp directory
+                    ref_path = temp_path.parent / ref
+                    ref_path.parent.mkdir(parents=True, exist_ok=True)
+                    with open(ref_path, "wb") as f:
+                        f.write(ref_file.getbuffer())
+                    uploaded_refs[ref] = True
+            
+            # Only enable conversion if all referenced files are uploaded
+            if len(uploaded_refs) < len(local_refs):
+                st.error("Please upload all referenced files before converting")
+                st.stop()
     
     # Detect file type
     mime = magic.Magic(mime=True)
