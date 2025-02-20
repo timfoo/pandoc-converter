@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import requests
 from urllib.parse import urlparse
+from typing import List
 
 def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
     """Process image URLs in markdown content by downloading them to temp directory.
