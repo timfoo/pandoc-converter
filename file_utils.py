@@ -7,6 +7,44 @@ import requests
 from typing import List
 from urllib.parse import urlparse
 
+def is_valid_remote_url(url: str) -> bool:
+    """Thoroughly validate if a string is a valid remote URL.
+
+    Args:
+        url: The URL string to validate.
+
+    Returns:
+        bool: True if the URL is valid and remote, False otherwise.
+    """
+    try:
+        result = urlparse(url)
+        # Check for valid scheme
+        if not result.scheme:
+            return False
+        
+        # Validate scheme is a remote protocol
+        valid_schemes = ('http', 'https', 'ftp', 'sftp')
+        if result.scheme not in valid_schemes:
+            return False
+            
+        # Must have a network location (domain)
+        if not result.netloc:
+            return False
+            
+        # Basic domain validation
+        domain = result.netloc.split(':')[0]  # Remove port if present
+        if not domain or domain.startswith('.'):
+            return False
+            
+        # Check for common local addresses
+        local_addresses = ('localhost', '127.0.0.1', '0.0.0.0')
+        if domain.lower() in local_addresses:
+            return False
+            
+        return True
+    except (ValueError, AttributeError):
+        return False
+
 def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
     """Process image URLs in markdown content by downloading them to temp directory.
 
@@ -20,22 +58,12 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
     # Match all image references: ![alt](path)
     image_pattern = r'!\[([^\]]*)\]\(([^\)]+)\)(?:{[^}]*})?'
     
-    def is_url(path):
-        """Check if the path is a URL."""
-        try:
-            result = urlparse(path)
-            # Consider both http(s) and other valid URL schemes
-            valid_schemes = ('http', 'https', 'ftp', 'sftp')
-            return result.scheme in valid_schemes and bool(result.netloc)
-        except ValueError:
-            return False
-    
     def process_image_reference(match):
         alt_text = match.group(1)
         path = match.group(2).strip()
         
-        # If not a URL, return original reference unchanged
-        if not is_url(path):
+        # If not a valid remote URL, return original reference unchanged
+        if not is_valid_remote_url(path):
             return match.group(0)
             
         try:
@@ -48,9 +76,15 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
             if not filename or '=' in filename:
                 filename = f'image_{abs(hash(path))}.jpg'
             
-            # Download image
-            response = requests.get(path, timeout=10)
+            # Download image with proper timeout and headers
+            headers = {'User-Agent': 'Mozilla/5.0'}
+            response = requests.get(path, timeout=10, headers=headers, allow_redirects=True)
             response.raise_for_status()
+            
+            # Verify content type is an image
+            content_type = response.headers.get('content-type', '')
+            if not content_type.startswith('image/'):
+                raise ValueError(f'Invalid content type: {content_type}')
             
             # Save to temp directory
             image_path = temp_dir / filename
@@ -60,7 +94,7 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
             # Return markdown with local reference
             return f'![{alt_text}]({filename})'
         except Exception as e:
-            print(f"Failed to process image {path}: {str(e)}")
+            print(f'Failed to process image {path}: {str(e)}')
             return match.group(0)  # Return original markdown on error
     
     # Process all image references
@@ -76,9 +110,9 @@ def extract_local_references(markdown_content: str) -> List[str]:
         A list of local file references found in the markdown content.
     """
     # Match image references: ![alt](path) or ![alt](path){options}
-    image_pattern = r'!\[.*?\]\(((?!https?://|www\.)[^\s")]+)\)(?:{[^}]*})?'
+    image_pattern = r'!\[.*?\]\(((?!https?://|www\.|ftp://|sftp://)[^\s"\)]+)\)(?:{[^}]*})?'
     # Match other local file references like: [text](path)
-    link_pattern = r'(?<!!)\[.*?\]\(((?!https?://|www\.)[^\s")]+)\)'
+    link_pattern = r'(?<!!)\[.*?\]\(((?!https?://|www\.|ftp://|sftp://)[^\s"\)]+)\)'
     
     local_refs = []
     
@@ -86,13 +120,15 @@ def extract_local_references(markdown_content: str) -> List[str]:
     image_refs = re.findall(image_pattern, markdown_content)
     link_refs = re.findall(link_pattern, markdown_content)
     
-    # Combine and filter out any web URLs that might have slipped through
-    local_refs.extend([ref for ref in image_refs if not ref.startswith(('http://', 'https://', 'www.', '//'))])
-    local_refs.extend([ref for ref in link_refs if not ref.startswith(('http://', 'https://', 'www.', '//'))])
+    # Combine and filter out any URLs that might have slipped through
+    for ref in image_refs + link_refs:
+        ref = ref.strip()
+        # Additional validation to ensure it's a local reference
+        if not is_valid_remote_url(ref) and not ref.startswith(('//', 'data:')):
+            local_refs.append(ref)
     
     # Clean up paths and remove duplicates
-    local_refs = list(set(ref.strip() for ref in local_refs))
-    return local_refs
+    return list(set(local_refs))
 
 def setup_temp_directory(temp_dir: Path) -> None:
     """Set up a temporary directory for file processing.
