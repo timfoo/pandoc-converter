@@ -18,6 +18,7 @@ st.markdown("Convert your documents between different formats using Pandoc")
 # Define supported Pandoc formats
 PANDOC_FORMATS = {
     'text/markdown': {'ext': '.md', 'pandoc_format': 'markdown', 'output_formats': ['html', 'pdf', 'docx', 'odt']},
+    'text/plain': {'ext': '.md', 'pandoc_format': 'markdown', 'output_formats': ['html', 'pdf', 'docx', 'odt']},  # Added for .md files detected as plain text
     'text/html': {'ext': '.html', 'pandoc_format': 'html', 'output_formats': ['md', 'pdf', 'docx', 'odt']},
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {'ext': '.docx', 'pandoc_format': 'docx', 'output_formats': ['md', 'html', 'pdf', 'odt']},
     'application/vnd.oasis.opendocument.text': {'ext': '.odt', 'pandoc_format': 'odt', 'output_formats': ['md', 'html', 'pdf', 'docx']}

@@ -1,5 +1,17 @@
 # Development Log
 
+## 2024-01-09
+- Added support for text/plain MIME type to handle Markdown files that are detected as plain text
+- Updated error message to be more specific about supported file types
+- Fixed issue with Markdown files not being recognized properly due to MIME type detection
+- Tested and verified Markdown to PDF/HTML/DOCX/ODT conversion paths
+
+## Next Steps
+- Consider adding support for more Pandoc formats (RST, ORG, EPUB, etc.)
+- Add support for PowerPoint (PPTX) as output format
+- Implement better error handling for PDF conversion when LaTeX is not installed
+- Consider adding format-specific options (e.g., template selection, metadata)
+
 ## 2024-02-19
 
 ### Project Initialization
