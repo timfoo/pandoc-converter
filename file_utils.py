@@ -17,8 +17,8 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
     Returns:
         Updated markdown content with local references to downloaded images.
     """
-    # Match image references with URLs: ![alt](http(s)://path)
-    image_url_pattern = r'!\[([^\]]*)\]\((https?://[^)]+)\)(?:{[^}]*})?'
+    # Match image references with URLs: ![alt](http(s)://path) including query parameters and attributes
+    image_url_pattern = r'!\[([^\]]*)\]\((https?://[^\s)"]+(?:\?[^\s)"]+)?)\)(?:{[^}]*})?'
     
     def download_and_replace(match):
         alt_text = match.group(1)
@@ -59,9 +59,9 @@ def extract_local_references(markdown_content: str) -> List[str]:
         A list of local file references found in the markdown content.
     """
     # Match image references: ![alt](path) or ![alt](path){options}
-    image_pattern = r'!\[.*?\]\(((?!https?://|www\.)[^)]+)\)(?:{[^}]*})?'
+    image_pattern = r'!\[.*?\]\(((?!https?://|www\.)[^\s")]+)\)(?:{[^}]*})?'
     # Match other local file references like: [text](path)
-    link_pattern = r'(?<!!)\[.*?\]\(((?!https?://|www\.)[^)]+)\)'
+    link_pattern = r'(?<!!)\[.*?\]\(((?!https?://|www\.)[^\s")]+)\)'
     
     local_refs = []
     
