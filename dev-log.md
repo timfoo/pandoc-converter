@@ -59,6 +59,13 @@
 - Enhanced error handling for conversion failures
 - Improved MIME type detection and format mapping
 
+### Code Refactoring
+- Separated format definitions into pandoc_formats.py for better maintainability
+- Created file_utils.py for centralized file handling operations
+- Improved code organization and modularity in app.py
+- Enhanced type hints and documentation
+- Implemented better temporary file management
+
 ### Next Steps
 - Add format-specific conversion options (templates, metadata)
 - Implement batch conversion functionality

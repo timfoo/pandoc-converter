@@ -1,8 +1,13 @@
+"""Main application module for the Pandoc Converter."""
+
 import streamlit as st
 import magic
 import os
 import subprocess
 from pathlib import Path
+
+from pandoc_formats import PANDOC_FORMATS, FORMAT_CATEGORIES, get_output_formats, get_pandoc_format, is_supported_format
+from file_utils import extract_local_references, setup_temp_directory, cleanup_temp_files, save_uploaded_file
 
 # Set page config
 st.set_page_config(
@@ -15,34 +20,9 @@ st.set_page_config(
 st.title("Pandoc Converter")
 st.markdown("Convert your documents between different formats using Pandoc")
 
-# Define supported Pandoc formats
-PANDOC_FORMATS = {
-    # Lightweight markup formats
-    'text/markdown': {'ext': '.md', 'pandoc_format': 'markdown', 'output_formats': ['html', 'pdf', 'docx', 'odt', 'pptx', 'epub', 'latex', 'rst', 'org', 'textile', 'mediawiki', 'dokuwiki']},
-    'text/plain': {'ext': '.md', 'pandoc_format': 'markdown', 'output_formats': ['html', 'pdf', 'docx', 'odt', 'pptx', 'epub', 'latex', 'rst', 'org', 'textile', 'mediawiki', 'dokuwiki']},
-    'text/x-rst': {'ext': '.rst', 'pandoc_format': 'rst', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'pptx', 'epub', 'latex']},
-    'text/org': {'ext': '.org', 'pandoc_format': 'org', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'pptx', 'epub', 'latex']},
-    
-    # HTML formats
-    'text/html': {'ext': '.html', 'pandoc_format': 'html', 'output_formats': ['md', 'pdf', 'docx', 'odt', 'pptx', 'epub', 'latex', 'rst', 'org', 'textile']},
-    
-    # Word processor formats
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': {'ext': '.docx', 'pandoc_format': 'docx', 'output_formats': ['md', 'html', 'pdf', 'odt', 'pptx', 'epub', 'latex', 'rst']},
-    'application/vnd.oasis.opendocument.text': {'ext': '.odt', 'pandoc_format': 'odt', 'output_formats': ['md', 'html', 'pdf', 'docx', 'pptx', 'epub', 'latex', 'rst']},
-    'text/rtf': {'ext': '.rtf', 'pandoc_format': 'rtf', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'pptx', 'epub', 'latex']},
-    
-    # Ebooks
-    'application/epub+zip': {'ext': '.epub', 'pandoc_format': 'epub', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'latex']},
-    
-    # Interactive notebooks
-    'application/x-ipynb+json': {'ext': '.ipynb', 'pandoc_format': 'ipynb', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'latex']},
-    
-    # Wiki formats
-    'text/x-wiki': {'ext': '.wiki', 'pandoc_format': 'mediawiki', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'latex']},
-    
-    # LaTeX
-    'text/x-tex': {'ext': '.tex', 'pandoc_format': 'latex', 'output_formats': ['md', 'html', 'pdf', 'docx', 'odt', 'pptx', 'epub']}
-}
+# Initialize temporary directory
+TEMP_DIR = Path("temp")
+setup_temp_directory(TEMP_DIR)
 
 def check_pandoc_installed():
     """Check if pandoc is installed and accessible."""
@@ -51,31 +31,6 @@ def check_pandoc_installed():
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
-
-# Add after imports
-import re
-from typing import List, Tuple
-
-def extract_local_references(markdown_content: str) -> List[str]:
-    """Extract local file references from markdown content."""
-    # Match image references: ![alt](path) or ![alt](path){options}
-    image_pattern = r'!\[.*?\]\(((?!https?://|www\.)[^)]+)\)(?:{[^}]*})?'
-    # Match other local file references like: [text](path)
-    link_pattern = r'(?<!!)\[.*?\]\(((?!https?://|www\.)[^)]+)\)'
-    
-    local_refs = []
-    
-    # Find all matches
-    image_refs = re.findall(image_pattern, markdown_content)
-    link_refs = re.findall(link_pattern, markdown_content)
-    
-    # Combine and filter out any web URLs that might have slipped through
-    local_refs.extend(image_refs)
-    local_refs.extend(link_refs)
-    
-    # Clean up paths and remove duplicates
-    local_refs = list(set(ref.strip() for ref in local_refs))
-    return [ref for ref in local_refs if ref and not ref.startswith(('http://', 'https://', 'www.'))]
 
 # Update the file uploader section
 uploaded_file = st.file_uploader("Choose a file", type=None)
