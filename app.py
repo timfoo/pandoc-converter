@@ -114,8 +114,8 @@ if uploaded_file is not None:
             for ref in local_refs:
                 ref_file = st.file_uploader(f"Upload referenced file: {ref}", key=ref)
                 if ref_file:
-                    # Save referenced file to temp directory
-                    ref_path = temp_path.parent / ref
+                    # Save referenced file to temp directory with original path structure
+                    ref_path = temp_path.parent / Path(ref)
                     ref_path.parent.mkdir(parents=True, exist_ok=True)
                     with open(ref_path, "wb") as f:
                         f.write(ref_file.getbuffer())
@@ -139,7 +139,8 @@ if uploaded_file is not None:
                 
                 # Run pandoc conversion
                 input_format = PANDOC_FORMATS[file_type]['pandoc_format']
-                cmd = ['pandoc', str(temp_path), '-f', input_format, '-t', selected_format, '-o', str(output_path)]
+                cmd = ['pandoc', str(temp_path), '-f', input_format, '-t', selected_format, 
+                      '--resource-path', str(temp_path.parent), '-o', str(output_path)]
                 result = subprocess.run(cmd, capture_output=True, text=True)
                 
                 if result.returncode == 0:
