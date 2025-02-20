@@ -20,32 +20,15 @@ st.set_page_config(
 st.title("Pandoc Converter")
 st.markdown("Convert your documents between different formats using Pandoc")
 
-# Feature highlights section
-st.markdown("### 🌟 Key Features")
-col1, col2 = st.columns(2)
-
-with col1:
-    st.markdown("""✨ **Smart Format Detection**
-    - Automatic file type detection
-    - Supports multiple input formats
-    - Intelligent MIME type handling""")
-    
-    st.markdown("""🔄 **Remote Resource Handling**
-    - Automatic remote image processing
-    - URL validation and download
-    - Seamless integration in output""")
-
-with col2:
-    st.markdown("""📁 **Local File Support**
-    - Handles local file references
-    - Maintains directory structure
-    - Preserves image quality""")
-    
-    st.markdown("""🎯 **Format Conversion**
-    - Multiple output formats
-    - Preserves document structure
-    - High-quality conversion""")
-
+# Feature highlights
+st.markdown("""
+### ✨ Key Features
+- 🔄 **Smart Format Detection**: Automatically detects and handles various document formats
+- 🖼️ **Remote Image Support**: Automatically downloads and processes remote images in Markdown
+- 📎 **Local Resource Handling**: Smart detection and management of local file references
+- 📄 **Multiple Format Support**: Convert between Markdown, HTML, PDF, DOCX, and more
+- 🎨 **Document Preview**: Preview your converted documents before downloading
+""")
 st.markdown("---")
 
 # Initialize temporary directory
