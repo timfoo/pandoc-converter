@@ -38,3 +38,29 @@
 2. Implementing temporary file storage with automatic cleanup to handle file uploads safely
 3. Chose Streamlit for rapid UI development and easy deployment
 4. Removed python-magic-bin dependency in favor of system libmagic for better compatibility
+
+## 2024-02-20
+
+### Feature Implementation
+- Implemented comprehensive support for LaTeX-based PDF conversion
+- Added support for multiple Pandoc formats including RST, ORG, EPUB, and PPTX
+- Implemented local file reference detection and handling in Markdown documents
+- Added support for image and link references in Markdown files
+
+### UI Improvements
+- Added a detailed conversion support table with categorized format listings
+- Implemented an expandable view for supported format conversions
+- Enhanced file type detection feedback
+- Added clear error messages for missing referenced files
+
+### Technical Enhancements
+- Implemented robust temporary file handling with automatic cleanup
+- Added resource path handling for referenced files in conversions
+- Enhanced error handling for conversion failures
+- Improved MIME type detection and format mapping
+
+### Next Steps
+- Add format-specific conversion options (templates, metadata)
+- Implement batch conversion functionality
+- Add preview functionality for supported formats
+- Consider adding custom styling options for output formats

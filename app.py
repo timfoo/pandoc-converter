@@ -155,6 +155,19 @@ if uploaded_file is not None:
                         file_name=f"converted.{selected_format}",
                         mime=f"application/{selected_format}"
                     )
+
+                    # Create HTML preview
+                    preview_path = temp_path.parent / 'preview.html'
+                    preview_cmd = ['pandoc', str(temp_path), '-f', input_format, '-t', 'html', 
+                                  '--resource-path', str(temp_path.parent), '-o', str(preview_path)]
+                    preview_result = subprocess.run(preview_cmd, capture_output=True, text=True)
+                    
+                    if preview_result.returncode == 0:
+                        with open(preview_path, 'r', encoding='utf-8') as f:
+                            html_content = f.read()
+                        st.markdown("### Document Preview")
+                        st.components.v1.html(html_content, height=500, scrolling=True)
+                        os.remove(preview_path)
                 else:
                     st.error(f"Conversion failed: {result.stderr}")
             except Exception as e:
