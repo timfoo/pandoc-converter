@@ -24,7 +24,9 @@ def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
         """Check if the path is a URL."""
         try:
             result = urlparse(path)
-            return all([result.scheme, result.netloc])
+            # Consider both http(s) and other valid URL schemes
+            valid_schemes = ('http', 'https', 'ftp', 'sftp')
+            return result.scheme in valid_schemes and bool(result.netloc)
         except ValueError:
             return False
     
