@@ -7,7 +7,7 @@ import subprocess
 from pathlib import Path
 
 from pandoc_formats import PANDOC_FORMATS, FORMAT_CATEGORIES, get_output_formats, get_pandoc_format, is_supported_format
-from file_utils import extract_local_references, setup_temp_directory, cleanup_temp_files, save_uploaded_file
+from file_utils import extract_local_references, setup_temp_directory, cleanup_temp_files, save_uploaded_file, process_image_urls
 
 # Set page config
 st.set_page_config(
@@ -19,6 +19,34 @@ st.set_page_config(
 # Title and description
 st.title("Pandoc Converter")
 st.markdown("Convert your documents between different formats using Pandoc")
+
+# Feature highlights section
+st.markdown("### 🌟 Key Features")
+col1, col2 = st.columns(2)
+
+with col1:
+    st.markdown("""✨ **Smart Format Detection**
+    - Automatic file type detection
+    - Supports multiple input formats
+    - Intelligent MIME type handling""")
+    
+    st.markdown("""🔄 **Remote Resource Handling**
+    - Automatic remote image processing
+    - URL validation and download
+    - Seamless integration in output""")
+
+with col2:
+    st.markdown("""📁 **Local File Support**
+    - Handles local file references
+    - Maintains directory structure
+    - Preserves image quality""")
+    
+    st.markdown("""🎯 **Format Conversion**
+    - Multiple output formats
+    - Preserves document structure
+    - High-quality conversion""")
+
+st.markdown("---")
 
 # Initialize temporary directory
 TEMP_DIR = Path("temp")
@@ -58,8 +86,16 @@ if uploaded_file is not None:
     if file_type in ['text/markdown', 'text/plain']:
         with open(temp_path, 'r', encoding='utf-8') as f:
             content = f.read()
-        local_refs = extract_local_references(content)
         
+        # Process any image URLs in the content
+        content = process_image_urls(content, temp_path.parent)
+        
+        # Write back the updated content
+        with open(temp_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        local_refs = extract_local_references(content)
+
         if local_refs:
             st.warning("This document contains references to local files:")
             st.write(", ".join(local_refs))

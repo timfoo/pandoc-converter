@@ -3,7 +3,49 @@
 import os
 from pathlib import Path
 import re
-from typing import List
+import requests
+from urllib.parse import urlparse
+
+def process_image_urls(markdown_content: str, temp_dir: Path) -> str:
+    """Process image URLs in markdown content by downloading them to temp directory.
+
+    Args:
+        markdown_content: The content of the markdown file.
+        temp_dir: Path to the temporary directory.
+
+    Returns:
+        Updated markdown content with local references to downloaded images.
+    """
+    # Match image references with URLs: ![alt](http(s)://path)
+    image_url_pattern = r'!\[([^\]]*)\]\((https?://[^)]+)\)(?:{[^}]*})?'
+    
+    def download_and_replace(match):
+        alt_text = match.group(1)
+        url = match.group(2)
+        try:
+            # Parse URL and create local filename
+            parsed_url = urlparse(url)
+            filename = os.path.basename(parsed_url.path)
+            if not filename:
+                filename = 'image.jpg'  # Default filename if none in URL
+            
+            # Download image
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
+            
+            # Save to temp directory
+            image_path = temp_dir / filename
+            with open(image_path, 'wb') as f:
+                f.write(response.content)
+            
+            # Return markdown with local reference
+            return f'![{alt_text}]({filename})'
+        except Exception as e:
+            print(f"Failed to download image {url}: {str(e)}")
+            return match.group(0)  # Return original markdown on error
+    
+    # Replace all image URLs with local references
+    return re.sub(image_url_pattern, download_and_replace, markdown_content)
 
 def extract_local_references(markdown_content: str) -> List[str]:
     """Extract local file references from markdown content.

@@ -1,5 +1,16 @@
 # Development Log
 
+## 2024-02-21
+### Remote Image Support
+- Implemented automatic handling of remote image URLs in Markdown documents
+- Added functionality to download and process remote images during conversion
+- Enhanced document processing to maintain image references integrity
+
+### UI Enhancements
+- Added prominent feature highlights section in the interface
+- Improved visual feedback for file type detection and processing
+- Enhanced user guidance for handling remote and local resources
+
 ## 2024-01-09
 - Added support for text/plain MIME type to handle Markdown files that are detected as plain text
 - Updated error message to be more specific about supported file types
